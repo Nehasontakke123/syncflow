@@ -3,7 +3,7 @@ import axios from "axios";
 import { io } from "socket.io-client";
 
 /* 🔥 BACKEND URL (DEPLOYED) */
-const API_URL = "https://YOUR_BACKEND_URL.vercel.app";
+const API_URL = "https://syncflow-5kkf.onrender.com/";
 
 /* 🔥 SOCKET CONNECT */
 const socket = io(API_URL);
