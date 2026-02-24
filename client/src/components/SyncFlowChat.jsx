@@ -2,7 +2,11 @@ import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { io } from "socket.io-client";
 
-const socket = io("http://localhost:5000");
+/* 🔥 BACKEND URL (DEPLOYED) */
+const API_URL = "https://YOUR_BACKEND_URL.vercel.app";
+
+/* 🔥 SOCKET CONNECT */
+const socket = io(API_URL);
 
 const SyncFlowChat = () => {
   const [shopName, setShopName] = useState("");
@@ -11,18 +15,22 @@ const SyncFlowChat = () => {
   const [status, setStatus] = useState("Online");
   const [messages, setMessages] = useState([]);
 
+  /* 🔥 SEND TO BACKEND */
   const sendToBackend = async (data) => {
-    const res = await axios.post("http://localhost:5000/api/messages", data);
+    const res = await axios.post(`${API_URL}/api/messages`, data);
     return res.data;
   };
 
+  /* 🔥 SAVE OFFLINE */
   const saveOffline = (data) => {
     const old =
       JSON.parse(localStorage.getItem("offlineMsgs")) || [];
+
     old.push(data);
     localStorage.setItem("offlineMsgs", JSON.stringify(old));
   };
 
+  /* 🔥 SEND MESSAGE */
   const handleSend = async () => {
     if (!shopName || !address || !phone) return;
 
@@ -30,7 +38,9 @@ const SyncFlowChat = () => {
 
     if (navigator.onLine) {
       const saved = await sendToBackend(data);
+
       socket.emit("sendMessage", saved);
+
       setStatus("✔ Sent (Online)");
     } else {
       saveOffline(data);
@@ -48,6 +58,7 @@ const SyncFlowChat = () => {
     setPhone("");
   };
 
+  /* 🔥 OFFLINE SYNC */
   const syncData = async () => {
     const data =
       JSON.parse(localStorage.getItem("offlineMsgs")) || [];
@@ -63,6 +74,7 @@ const SyncFlowChat = () => {
     }
   };
 
+  /* 🔥 RECEIVE REALTIME */
   useEffect(() => {
     socket.on("receiveMessage", (data) => {
       setMessages((prev) => [
@@ -79,6 +91,7 @@ const SyncFlowChat = () => {
     return () => socket.off("receiveMessage");
   }, []);
 
+  /* 🔥 ONLINE OFFLINE LISTENER */
   useEffect(() => {
     const onlineHandler = () => {
       setStatus("Online");
@@ -101,7 +114,6 @@ const SyncFlowChat = () => {
   return (
     <div className="min-h-screen bg-gray-100 p-3 md:p-6">
 
-      {/* 🔥 RESPONSIVE CONTAINER */}
       <div className="flex flex-col md:flex-row gap-4 max-w-6xl mx-auto">
 
         {/* LEFT FORM */}
@@ -160,12 +172,8 @@ const SyncFlowChat = () => {
                 <p className="font-semibold text-gray-800">
                   {msg.shopName}
                 </p>
-                <p className="text-sm text-gray-700">
-                  {msg.address}
-                </p>
-                <p className="text-sm text-gray-700">
-                  {msg.phone}
-                </p>
+                <p className="text-sm text-gray-700">{msg.address}</p>
+                <p className="text-sm text-gray-700">{msg.phone}</p>
 
                 <p className="text-xs text-right mt-1 text-gray-500">
                   {msg.localStatus === "offline" && "🟡 Offline"}
